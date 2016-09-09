@@ -5,7 +5,7 @@
 -- The generated Haskell identifiers may sometimes conflict with each other and with Haskell keywords. If that happens, adjust 'ReverseNamingStyle'.
 
 module Database.Groundhog.Inspector
-  ( 
+  (
   -- * Mapping essentials
     collectTables
   , ReverseNamingStyle(..)
@@ -84,7 +84,7 @@ data ReverseNamingStyle = ReverseNamingStyle {
   -- | Create name for unique key field. It creates record name both for one-column and composite keys. Parameters: table name, reference.
   , mkKeyFieldName :: QualifiedName -> Reference -> String
   -- | There can be several uniques with the same columns (one primary key and multiple constraints and indexes).
-  --  The function must return a stable name regardless of the list order. 
+  --  The function must return a stable name regardless of the list order.
   , mkChooseReferencedUnique :: QualifiedName -> [UniqueDefInfo] -> UniqueDefInfo
   -- | Create name for phantom unique key used to parametrise 'Key'. Parameters: table name, unique key definition.
   , mkUniqueKeyPhantomName :: QualifiedName -> UniqueDefInfo -> String
@@ -260,7 +260,7 @@ generateData' DataCodegenConfig{..} ReverseNamingStyle{..} tables tName tInfo = 
       Just ref -> (case Map.lookup parentName tables of
         Just parentInfo ->
           (mkName $ mkKeyFieldName tName ref, notStrict', mkKeyType parentInfo)
-        Nothing -> 
+        Nothing ->
           (mkName $ mkKeyFieldName tName ref, notStrict', notMappedRefType)
         ):go (filter (`notElem` childCols) cs) where
 
@@ -366,7 +366,7 @@ generateMapping' ReverseNamingStyle{..} m@MigrationPack{..} tables tName tInfo =
             autoKeyType = getDefaultAutoKeyType $ (undefined :: MigrationPack conn -> p conn) m
           refOnDelete = mfilter (/= defaultReferenceOnDelete) $ referenceOnDelete ref
           refOnUpdate = mfilter (/= defaultReferenceOnUpdate) $ referenceOnUpdate ref
-          
+
           getCols info cols = map (\cName -> findOne "column" colName cName $ tableColumns info) cols
           childCols = getCols tInfo $ map fst $ referencedColumns ref
       Nothing -> PSFieldDef (mkFieldName tName $ colName c) (Just $ colName c) (case colType c of DbOther t -> Just $ showOther t; _ -> Nothing) Nothing Nothing (colDefault c) Nothing Nothing:go cs
@@ -408,13 +408,13 @@ showData = removeForalls . pprint . removeModules where
 -- You can use a third-party tool to convert JSON to YAML.
 showMappings :: [PSEntityDef] -> ByteString
 showMappings = encodePretty' config where
-  config = Config { confIndent = 4, confCompare = keyOrder keys }
+  config = Config { confIndent = Spaces 4, confCompare = keyOrder keys, confNumFormat = Generic }
   keys = ["entity", "name", "dbName", "schema", "autoKey", "keyDbName", "type", "embeddedType", "columns", "keys", "fields", "uniques"]
 
 dataD' :: Cxt -> Name -> [TyVarBndr] -> [Con] -> [Name] -> InstanceDec
-dataD' cxt name types constrs derives =
+dataD' cxt' name types constrs' derives =
 #if MIN_VERSION_template_haskell(2, 11, 0)
-  DataD cxt name types Nothing constrs (map ConT derives)
+  DataD cxt' name types Nothing constrs' (map ConT derives)
 #else
   DataD cxt name types constrs derives
 #endif
